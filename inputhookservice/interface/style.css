@@ -1,0 +1,41 @@
+body {
+	background-color: #333333;
+	color: #CCCCCC;
+	font-family: Arial;
+	font-size: 24px;
+}
+
+.log {
+	height: 500px;
+	overflow: scroll;
+	display: block;
+	border: 2px solid white;
+	background-color: #000;
+	font-size: 18px;
+}
+
+textarea {
+	height: 200px;
+	width: 90%;
+	overflow: scroll;
+	display: block;
+	border: 2px solid white;
+	background-color: #000;
+	font-size: 18px;
+	color: #CCCCCC;
+	white-space: nowrap;
+}
+
+#keybinds {
+	margin: 10px;
+	line-height: 48px;
+}
+
+.binding {
+	border: 2px solid white;
+	margin-bottom: 2px;
+}
+
+.label {
+	margin-left: 10px;
+}

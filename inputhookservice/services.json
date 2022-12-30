@@ -1,0 +1,9 @@
+{
+  "id": "org.webosbrew.inputhook.service",
+  "description": "LG Input Hook Service",
+  "services": [
+    {
+      "name": "org.webosbrew.inputhook.service"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>LG Input Hook configuration</title>
+		<link type="text/css" rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<span id="url"></span>
+		<br>
+		<br>
+		<span>Key binds:</span>
+		<div id="keybinds">
+		</div>
+		<span id="status" style="color: #0F0;"></span>
+		<br>
+		<button id="create">Add keybind</button>
+		<button id="save">Save changes</button>
+		<br>
+		<span>In order to apply changes, a full system reboot must be made after saving.</span>
+		<br>
+		<span>This can be done either by unplugging the TV and plugging it back in, using</span>
+		<br>
+		<span>the reboot button in the homebrew channel, or pressing the reboot button on</span>
+		<br>
+		<span>this page. You can also just use the power button on the remote, but it will</span>
+		<br>
+		<span>not do a full reboot if you have Quick Start+ enabled in the TVs settings.</span>
+		<button id="reboot">Reboot</button>
+		<br>
+		<br>
+		<span>View logs:</span>
+		<select id="log">
+			<option value="RELEASE">RELEASE (IR remote on some older WebOS versions)</option>
+			<option value="tvservice" selected>tvservice (IR remote on WebOS 4.x and below)</option>
+			<option value="micomservice">micomservice (IR remote on WebOS 5.x and up)</option>
+			<option value="lginput2">lginput2 (LG Magic Remote)</option>
+			<option value="testapp">testapp (meant for debugging purposes)</option>
+		</select>
+		<br>
+		<div id="logs">
+			<span id="inputhook-label">lginput-hook.log:</span>
+			<pre class="log" id="inputhook-log"></pre>
+			<span id="hookfactory-label">hookfactory.log:</span>
+			<pre class="log" id="hookfactory-log"></pre>
+			<span id="ezinject-label">ezinject.log:</span>
+			<pre class="log" id="ezinject-log"></pre>
+		</div>
+		<script src="main.js"></script>
+	</body>
+</html>

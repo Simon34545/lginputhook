@@ -1,0 +1,11 @@
+{
+  "id": "org.webosbrew.inputhook",
+  "version": "1.0.0",
+  "vendor": "webosbrew.org",
+  "type": "web",
+  "main": "index.html",
+  "title": "LG Input Hook",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#333333"
+}
