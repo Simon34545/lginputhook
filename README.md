@@ -49,6 +49,6 @@ This will produce an ipk file. See the instructions above for installing it.
 
 
 ## Credits
-[smx-smx](https://github.com/smx-smx) - Created [ezinject](https://github.com/smx-smx/ezinject), which is used to inject the inputhook into the various processes.
+[smx-smx](https://github.com/smx-smx) - Created [ezinject / hookfactory](https://github.com/smx-smx/ezinject), which is used to inject the inputhook into the various processes.
 
-[Informatic](https://github.com/Informatic) - Created the original [inputhook](https://gist.github.com/Informatic/319bcaf94436b9136904473ca4f4ec9c) and [hookfactory](https://gist.github.com/Informatic/96ea5496721ccdacc43fed964e36e239) scripts.
+[Informatic](https://github.com/Informatic) - Created the original [inputhook](https://gist.github.com/Informatic/319bcaf94436b9136904473ca4f4ec9c) script.
