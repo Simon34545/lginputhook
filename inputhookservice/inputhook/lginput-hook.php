@@ -1,7 +1,5 @@
 <?php
 require_once __DIR__ . '/hookfactory.php';
-require_once __DIR__ . '/keybinds.php';
-
 $hf = new HookFactory2("
 typedef struct {
     int unk1[4];
@@ -21,6 +19,8 @@ function logmsg($str) {
     // fflush($fd);
     fsync($fd);
 }
+
+$keybinds = [];
 
 function handleKey(int $keycode, int $state) {
     global $keybinds;
@@ -90,4 +90,34 @@ if ($hf->hasSymbol("lginput_uinput_send_button")) {
         });
 }
 
-while (true) { sleep(1); }
+$configLocation = '/media/developer/apps/usr/palm/services/org.webosbrew.inputhook.service/config/keybinds.json';
+
+$prevMTime = 0;
+
+while (true) {
+    clearstatcache();
+    $mTime = filemtime($configLocation);
+
+    if ($mTime != $prevMTime) {
+        $prevMTime = $mTime;
+        logmsg("Reloading keybinds...");
+        try {
+            $fileContents = file_get_contents($configLocation);
+            if ($fileContents === false) {
+                throw new Exception('Failed to get file contents.');
+            }
+
+            $keybinds = json_decode($fileContents, true);
+            if ($keybinds === null) {
+                $keybinds = [];
+                throw new Exception('Failed to parse file contents.');
+            }
+
+            logmsg("Keybinds reloaded.");
+        } catch (Exception $e) {
+            logmsg("Failed to reload keybinds: " . $e->getMessage());
+        }
+    }
+
+    sleep(1);
+}

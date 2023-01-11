@@ -153,36 +153,6 @@ var server = http.createServer(function (req, res) {
 						res.writeHead(500);
 						res.write(error.code + ' ' + error.path);
 						res.end();
-						return;
-					}
-					
-					if (path == '/config/keybinds.json') {
-						var keybinds = JSON.parse(data);
-						data = '<?php\n\n$keybinds = [\n';
-						
-						for (var bind in keybinds) {
-								data += '    ' + bind + ' => [';
-								for (var prop in keybinds[bind]) {
-										data += JSON.stringify(prop) + ' => ' + (prop == 'command' ? '<<<COMMAND\n' + keybinds[bind][prop] + '\nCOMMAND': JSON.stringify(keybinds[bind][prop])) + ', ';
-								}
-								data = data.substring(0, data.length - 2) + '],\n';
-						}
-						
-						data += '];';
-						
-						fs.writeFile('./inputhook/keybinds.php', data, function (error) {
-							if (error) {
-								res.writeHead(500);
-								res.write(error.code + ' ' + error.path);
-								res.end();
-								return;
-							}
-							
-							var response = 'Successfully saved to ' + path;
-							res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': response.length});
-							res.write(response);
-							res.end();
-						});
 					} else {
 						var response = 'Successfully saved to ' + path;
 						res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': response.length});
