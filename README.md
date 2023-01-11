@@ -21,7 +21,7 @@ The log files you should view, depend on your WebOS version and what remote you 
 Alternatively, I have collected the button IDs for every button on [this IR remote](https://www.lg.com/us/tv-audio-video-accessories/lg-AGF76631064-tv-remote-contol), which you can find listed [here](https://gist.github.com/Simon34545/31c528bfe8540880936fc4c580723a02).
 
 ## How to install
-###Method 1, using webos dev manager:
+### Method 1, using webos dev manager:
 1. Download the ipk file from the releases.
 2. Download [webos-dev-manager](https://github.com/webosbrew/dev-manager-desktop), and open it
 3. Press add device
@@ -30,7 +30,7 @@ Alternatively, I have collected the button IDs for every button on [this IR remo
 6. Choose the ipk file you downloaded earlier.
 7. The app should now be installed and should show up in the list. Press Launch to launch it
 
-###Method 2, using the webos CLI:
+### Method 2, using the webos CLI:
 1. Download the ipk file from the releases.
 2. Install the [webos CLI](https://webostv.developer.lge.com/develop/tools/cli-installation)
 3. Run the following command with the CLI, but with the IP address of your tv, and a device name: `ares-setup-device --add deviceName -i "host=ip_address" -i "port=22" -i "username=root" -i "password=alpine"`
