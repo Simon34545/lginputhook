@@ -17,7 +17,7 @@ service.register('start', function(message) {
 
 service.register('autostart', function(message) {
 	try {
-		fs.writeFileSync('/var/lib/webosbrew/init.d/inputhook', '#!/bin/sh\n\noutput=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')\n\nif echo "$output" | grep -q \'status unknown\'; then\n  /var/lib/webosbrew/init.d/inputhook &\n  exit\nfi\n\nif echo "$output" | grep -q \'errorText\'; then\n  rm -f /var/lib/webosbrew/init.d/inputhook\nfi');
+		fs.writeFileSync('/var/lib/webosbrew/init.d/inputhook', '#!/bin/sh\n\noutput=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')\n\nif echo "$output" | grep -q \'status unknown\'; then\n	/var/lib/webosbrew/init.d/inputhook &\n	 exit\nfi\n\nif echo "$output" | grep -q \'errorText\'; then\n	rm -f /var/lib/webosbrew/init.d/inputhook\nfi');
 		fs.chmodSync('/var/lib/webosbrew/init.d/inputhook', '755');
 		message.respond({
 			"returnValue": true,
@@ -50,7 +50,7 @@ fs.chmodSync(dir + '/libphp.so', '777');
 
 if (!fs.existsSync('/tmp/inputhook')) {
 	for (var target of targets) {
-		child_process.exec(dir + '/ezinject ' + target[0] + ' ' + dir + '/libphp.so ' + dir + '/lginput-hook.php ' + target[1] +  ' > /tmp/ezinject-' + target[1] + '.log 2>&1');
+		child_process.exec(dir + '/ezinject ' + target[0] + ' ' + dir + '/libphp.so ' + dir + '/lginput-hook.php ' + target[1] +	' > /tmp/ezinject-' + target[1] + '.log 2>&1');
 	}
 	fs.writeFileSync('/tmp/inputhook', '');
 }
@@ -61,8 +61,76 @@ var types = {
 	'css': 'text/css'
 };
 
+// https://github.com/dankogai/js-base64/blob/main/base64.js
+var b64ch = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+var b64chs = Array.prototype.slice.call(b64ch);
+var b64tab = (function (a) {
+	var tab = {};
+	a.forEach(function (c, i) { return tab[c] = i; });
+	return tab;
+})(b64chs);
+var b64re = /^(?:[A-Za-z\d+\/]{4})*?(?:[A-Za-z\d+\/]{2}(?:==)?|[A-Za-z\d+\/]{3}=?)?$/;
+var _fromCC = String.fromCharCode.bind(String);
+function atob(asc) {
+	asc = asc.replace(/\s+/g, '');
+	if (!b64re.test(asc))
+		throw new TypeError('malformed base64.');
+		asc += '=='.slice(2 - (asc.length & 3));
+		var u24, bin = '', r1, r2;
+		for (var i = 0; i < asc.length;) {
+			u24 = b64tab[asc.charAt(i++)] << 18
+				| b64tab[asc.charAt(i++)] << 12
+				| (r1 = b64tab[asc.charAt(i++)]) << 6
+				| (r2 = b64tab[asc.charAt(i++)]);
+			bin += r1 === 64 ? _fromCC(u24 >> 16 & 255)
+				: r2 === 64 ? _fromCC(u24 >> 16 & 255, u24 >> 8 & 255)
+					: _fromCC(u24 >> 16 & 255, u24 >> 8 & 255, u24 & 255);
+		}
+	return bin;
+};
+
+function generatePassword(len) {
+	var out = '';
+	
+	for (var i = 0; i < len; i++) {
+		out += Math.floor(Math.random() * 0x10).toString(16);
+	}
+	
+	return out.toUpperCase();
+}
+
+function isLocalhost(ip) {
+	return ip == '::1' || ip == '::ffff:127.0.0.1';
+}
+
+const password = generatePassword(8);
+var passwordShown = false;
+
 var server = http.createServer(function (req, res) {
 	var path = req.url;
+	
+	var header = req.headers.authorization || '';
+	var token = header.split(/\s+/).pop() || '';
+	var auth = atob(token);
+	var parts = auth.split(/:/);
+	var authUsername = parts.shift();
+	var authPassword = parts.join(':');
+	
+	if (isLocalhost(req.socket.remoteAddress)) {
+		if (!passwordShown) {
+			service.call("luna://com.webos.notification/createToast", {
+				"sourceId": "lginputhook",
+				"message": "Password for the settings page is: " + password
+			});
+			passwordShown = true;
+		}
+	} else {
+		if (authPassword != password) {		
+			res.writeHead(401, {'WWW-Authenticate': 'Basic'});
+			res.end();
+			return;
+		}
+	}
 	
 	if (req.method == 'GET') {
 		if (path.substring(0, 6) == '/logs/') {
@@ -93,6 +161,13 @@ var server = http.createServer(function (req, res) {
 			}
 			
 			var data = '0.0.0.0';
+			
+			res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': data.length});
+			res.write(data);
+			res.end();
+			return;
+		} else if (path.substring(0, 10) == '/password/') {
+			var data = isLocalhost(req.socket.remoteAddress) ? password : '';
 			
 			res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': data.length});
 			res.write(data);
