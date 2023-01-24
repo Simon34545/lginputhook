@@ -27,7 +27,7 @@ webOS.service.request("luna://org.webosbrew.hbchannel.service", {
 						onSuccess: function (res) {
 							log(res.response);
 							log("Opening interface...");
-							location.href='http://127.0.0.1:1842/interface/';
+							location.href='http://127.0.0.1:1842/';
 						},
 						onFailure: function (error) {
 							log("Failed to turn on autostart!");
