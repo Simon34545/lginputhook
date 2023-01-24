@@ -178,7 +178,7 @@ var server = http.createServer(function (req, res) {
 			
 			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			return;
-		} else if (path.substring(0, 10) == '/apps.json'') {
+		} else if (path.substring(0, 10) == '/apps.json') {
 			var data = JSON.stringify({"subscribed": false, "apps": [{"title": "Example app", "id": "com.example.app"}], "returnValue": true});
 			
 			service.call("luna://com.webos.applicationManager/listApps", {}, function(response) {
