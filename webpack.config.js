@@ -17,6 +17,7 @@ module.exports = (env) => [
 
     entry: {
       index: './frontend/index.js',
+      'service/interface/main': './service/interface/main.js',
       // userScript: './src/userScript.js',
     },
     output: {
@@ -75,7 +76,6 @@ module.exports = (env) => [
 
     entry: {
       service: './service/service.js',
-      'interface/main': './service/interface/main.js',
     },
     output: {
       path: path.resolve(__dirname, './dist/service'),
