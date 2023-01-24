@@ -41,7 +41,7 @@ For example: `ares-setup-device --add livingRoomTV -i "host=192.168.1.129" -i "p
 
 ## How to build
 1. Clone the repository
-2. Run the following commands (assuming node.js / NPM is installed):
+2. Run the following commands (assuming NPM is installed):
 
 ```
 npm install
