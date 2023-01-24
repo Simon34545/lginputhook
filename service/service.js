@@ -178,6 +178,16 @@ var server = http.createServer(function (req, res) {
 			
 			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			return;
+		} else if (path.substring(0, 10) == '/apps.json'') {
+			var data = JSON.stringify({"subscribed": false, "apps": [{"title": "Example app", "id": "com.example.app"}], "returnValue": true});
+			
+			service.call("luna://com.webos.applicationManager/listApps", {}, function(response) {
+				if (!response.payload.returnValue) response.payload.apps = [{"title": "Could not get apps: " + response.payload.errorCode + " " + response.payload.errorText, "id": "org.webosbrew.inputhook"}];
+				var data = JSON.stringify(response.payload);
+				
+				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length}, data);
+			});
+			return;
 		} else if (path.substring(0, 8) == '/config/') {
 			fs.readFile('.' + path, function (error, data) {
 				if (error) {
@@ -186,12 +196,12 @@ var server = http.createServer(function (req, res) {
 				
 				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length}, data);
 			});
-		} else if (path.substring(0, 11) == '/interface/') {
+		} else {
 			if (path[path.length - 1] == '/') {
 				path += 'index.html';
 			}
 			
-			fs.readFile('.' + path, function (error, data) {
+			fs.readFile('./interface' + path, function (error, data) {
 				if (error) {
 					res.writeHead(error.code == 'ENOENT' ? 404 : 500);
 					res.end();
@@ -200,7 +210,6 @@ var server = http.createServer(function (req, res) {
 				
 				respond(res, 200, {'Content-Type': types[path.split('.')[path.split('.').length - 1]] || 'text/plain', 'Content-Length': data.length}, data);
 			});
-		} else {
 			respond(res, 404);
 		}
 	} else if (req.method == 'POST') {

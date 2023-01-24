@@ -1,6 +1,14 @@
 var rebooting = false;
 
-function get(path) {
+async function get(url) {
+  try {
+    return await fetch(url);
+	} catch {
+    return {text: () => ''};
+  }
+}
+
+function getSync(path) {
 	if (rebooting) return {};
 	var req = new XMLHttpRequest();
 	req.open('GET', path, false);
@@ -23,8 +31,14 @@ function put(path, data) {
 var keybinds = {};
 
 try {
-	keybinds = JSON.parse(get('/config/keybinds.json').responseText);
-} catch(error) {}
+	keybinds = JSON.parse(getSync('/config/keybinds.json').responseText);
+} catch(error) {};
+
+var apps = {};
+
+try {
+	apps = JSON.parse(getSync('/apps.json').responseText);
+} catch(error) {};
 
 function createLabel(parent, text) {
 	var label = document.createElement('span');
@@ -86,6 +100,12 @@ function showKeybinds() {
 		option3.value = 'ignore';
 		option3.innerText = 'Disable';
 		option3.selected = keybinds[binding].action == option3.value;
+		action.appendChild(option3);
+		var option4 = document.createElement('option');
+		option4.value = 'launch';
+		option4.innerText = 'Launch App';
+		option4.selected = keybinds[binding].action == option4.value;
+		action.appendChild(option4);
 		action.onchange = function() {
 			if (this.value == 'replace') {
 				keybinds[this.parentNode.getElementsByClassName('keycode')[0].getAttribute('binding')] = {action: 'replace', keycode: 0};
@@ -96,9 +116,11 @@ function showKeybinds() {
 			} else if (this.value == 'ignore') {
 				keybinds[this.parentNode.getElementsByClassName('keycode')[0].getAttribute('binding')] = {action: 'ignore'};
 				showKeybinds();
+			} else if (this.value == 'launch') {
+				keybinds[this.parentNode.getElementsByClassName('keycode')[0].getAttribute('binding')] = {action: 'launch', id: 'org.webosbrew.inputhook'};
+				showKeybinds();
 			}
 		}
-		action.appendChild(option3);
 		bindingDiv.appendChild(action);
 		
 		if (keybinds[binding].action == 'exec') {
@@ -122,7 +144,23 @@ function showKeybinds() {
 				keybinds[this.parentNode.getElementsByClassName('keycode')[0].getAttribute('binding')].keycode = parseInt(this.value) || 0;
 			}
 			bindingDiv.appendChild(replace);
-		}
+		} else if (keybinds[binding].action == 'launch') {
+			bindingDiv.appendChild(document.createElement('br'));
+			createLabel(bindingDiv, 'App: ')
+		
+			var appselect = document.createElement('select');
+			for (var app of apps.apps) {
+				var option = document.createElement('option');
+				option.value = app.id;
+				option.innerText = app.title + ' (' + app.id + ')';
+				option.selected = keybinds[binding].id == app.id;
+				appselect.appendChild(option);
+			}
+			appselect.onchange = function() {
+				keybinds[this.parentNode.getElementsByClassName('keycode')[0].getAttribute('binding')].id = this.value;
+			}
+			bindingDiv.appendChild(appselect);
+		} 
 		
 		bindingDiv.appendChild(document.createElement('br'));
 		
@@ -179,15 +217,15 @@ document.getElementById('log').onchange = function() {
 	log = this.value;
 }
 
-var ip = get('/ip/').responseText;
+var ip = getSync('/ip/').responseText;
 
 if (ip == '') location.reload();
 
-var password = get('/password/').responseText;
+var password = getSync('/password/').responseText;
 
-document.getElementById('url').innerHTML = 'To view this page on another device, go to <a href="#">http://' + (ip == '0.0.0.0' ? '<tv_ip>' : ip) + ':1842/interface/</a> in the web browser.<br>Username can be empty. ' + (password == '' ? '<br>Launch the app to view the password.' : '<br>Password is: ' + password) ;
+document.getElementById('url').innerHTML = 'To view this page on another device, go to <a href="#">http://' + (ip == '0.0.0.0' ? '<tv_ip>' : ip) + ':1842/</a> in the web browser.<br>Username can be empty. ' + (password == '' ? '<br>Launch the app to view the password.' : '<br>Password is: ' + password) ;
 
-setInterval(function() {
+setInterval(async function() {
 	document.getElementById('inputhook-label').innerText = 'lginput-hook-' + log + '.log';
 	document.getElementById('hookfactory-label').innerText = 'hookfactory-' + log + '.log';
 	document.getElementById('ezinject-label').innerText = 'ezinject-' + log + '.log';
@@ -197,9 +235,9 @@ setInterval(function() {
 	var scrolled1 = log1.scrollHeight - log1.clientHeight <= log1.scrollTop + 1;
 	var scrolled2 = log2.scrollHeight - log2.clientHeight <= log2.scrollTop + 1;
 	var scrolled3 = log3.scrollHeight - log3.clientHeight <= log3.scrollTop + 1;
-	log1.innerText = get('/logs/lginput-hook-' + log + '.log').responseText;
-	log2.innerText = get('/logs/hookfactory-' + log + '.log').responseText;
-	log3.innerText = get('/logs/ezinject-' + log + '.log').responseText;
+	log1.innerText = await (await get('/logs/lginput-hook-' + log + '.log')).text();
+	log2.innerText = await (await get('/logs/hookfactory-' + log + '.log')).text();
+	log3.innerText = await (await get('/logs/ezinject-' + log + '.log')).text();
 	if (scrolled1) log1.scrollTop = log1.scrollHeight - log1.clientHeight;
 	if (scrolled2) log2.scrollTop = log2.scrollHeight - log2.clientHeight;
 	if (scrolled3) log3.scrollTop = log3.scrollHeight - log3.clientHeight;

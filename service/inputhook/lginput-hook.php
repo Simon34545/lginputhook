@@ -29,10 +29,18 @@ function handleKey(int $keycode, int $state) {
     //var_dump($keyid, $uinput_info->keybinds[$keyid]->uinput_code, $state);
 
     if (isset($keybinds[$keycode])) {
-        if ($keybinds[$keycode]["action"] == "exec") {
+        if ($keybinds[$keycode]["action"] == "exec" or $keybinds[$keycode]["action"] == "launch") {
+						$cmd = "";
+
+						if ($keybinds[$keycode]["action"] == "launch") {
+								$cmd = 'luna-send -n 1 "luna://com.webos.applicationManager/launch" \'{"id":"' . $keybinds[$keycode]["id"] . '"}\'';
+						} else {
+								$cmd = $keybinds[$keycode]["command"];
+						}
+
             if ($state == 1) {
-                logmsg("$keycode: execing... {$keybinds[$keycode]["command"]}");
-                $proc = popen($keybinds[$keycode]["command"] . " &", "w");
+                logmsg("$keycode: execing... {$cmd}");
+                $proc = popen($cmd . " &", "w");
                 if ($proc == null) {
                     logmsg("$keycode: Exec failed :(");
                 } else {
