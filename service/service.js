@@ -3,6 +3,7 @@ var Service = require('webos-service');
 var child_process = require('child_process');
 var http = require('http');
 var fs = require('fs');
+var os = require('os');
 
 var service = new Service(pkgInfo.name);
 
@@ -99,8 +100,25 @@ function generatePassword(len) {
 	return out.toUpperCase();
 }
 
+function getLocalIP() {
+	var interfaces = os.networkInterfaces();
+	
+	for (var devName in interfaces) {
+		var iface = interfaces[devName];
+		
+		for (var i = 0; i < iface.length; i++) {
+			var alias = iface[i];
+			if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+				return alias.address;
+			}
+		}
+	}
+	
+	return '0.0.0.0';
+}
+
 function isLocalhost(ip) {
-	return ip == '::1' || ip == '::ffff:127.0.0.1';
+	return ip == '::1' || ip.indexOf('127.0.0.1') != -1;
 }
 
 const password = generatePassword(8);
@@ -154,22 +172,8 @@ var server = http.createServer(function (req, res) {
 				
 				respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			});
-		} else if (path.substring(0, 4) == '/ip/') {
-			var interfaces = require('os').networkInterfaces();
-			
-			for (var devName in interfaces) {
-				var iface = interfaces[devName];
-				
-				for (var i = 0; i < iface.length; i++) {
-					var alias = iface[i];
-					if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-						respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': alias.address.length}, alias.address);
-						return;
-					}
-				}
-			}
-			
-			var data = '0.0.0.0';
+		} else if (path.substring(0, 4) == '/ip/') {			
+			var data = getLocalIP();
 			
 			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			return;
