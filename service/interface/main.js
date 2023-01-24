@@ -1,3 +1,5 @@
+import 'regenerator-runtime/runtime';
+
 var rebooting = false;
 
 async function get(url) {
@@ -38,7 +40,9 @@ var apps = {};
 
 try {
 	apps = JSON.parse(getSync('/apps.json').responseText);
-} catch(error) {};
+} catch(error) {
+	apps = {apps: ["title": "Couldn't parse JSON: " + error, "id": "org.webosbrew.inputhook"]};
+};
 
 function createLabel(parent, text) {
 	var label = document.createElement('span');

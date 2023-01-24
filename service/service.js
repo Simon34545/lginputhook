@@ -185,7 +185,7 @@ var server = http.createServer(function (req, res) {
 				if (!response.payload.returnValue) response.payload.apps = [{"title": "Could not get apps: " + response.payload.errorCode + " " + response.payload.errorText, "id": "org.webosbrew.inputhook"}];
 				var data = JSON.stringify(response.payload);
 				
-				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length}, data);
+				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length + 1}, data);
 			});
 			return;
 		} else if (path.substring(0, 8) == '/config/') {
