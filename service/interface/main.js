@@ -185,7 +185,7 @@ if (ip == '') location.reload();
 
 var password = get('/password/').responseText;
 
-document.getElementById('url').innerHTML = 'To view this page on another device, go to <a href="#">http://' + (ip == '0.0.0.0' ? '<tv_ip>' : ip) + ':1842/interface/</a> in the web browser. Username can be empty. ' + (password == '' ? 'Launch the app to view the password.' : 'Password is: ' + password) ;
+document.getElementById('url').innerHTML = 'To view this page on another device, go to <a href="#">http://' + (ip == '0.0.0.0' ? '<tv_ip>' : ip) + ':1842/interface/</a> in the web browser.<br>Username can be empty. ' + (password == '' ? '<br>Launch the app to view the password.' : '<br>Password is: ' + password) ;
 
 setInterval(function() {
 	document.getElementById('inputhook-label').innerText = 'lginput-hook-' + log + '.log';

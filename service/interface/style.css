@@ -1,5 +1,5 @@
 body {
-	background-color: #333333;
+	background-color: #0C0C0C;
 	color: #CCCCCC;
 	font-family: Arial;
 	font-size: 24px;
@@ -38,4 +38,8 @@ textarea {
 
 .label {
 	margin-left: 10px;
+}
+
+a {
+	color: #16C60C;
 }

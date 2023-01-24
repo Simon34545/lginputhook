@@ -40,12 +40,16 @@ For example: `ares-setup-device --add livingRoomTV -i "host=192.168.1.129" -i "p
 
 
 ## How to build
-To package the app into an ipk, make sure you have the [webos CLI](https://webostv.developer.lge.com/develop/tools/cli-installation) installed.
-Then, run the following command:
+1. Clone the repository
+2. Run the following commands (assuming node.js / NPM is installed):
 
-`ares-package /path/to/inputhook /path/to/inputhookservice`
+```
+npm install
+npm run build
+npm run package
+```
 
-This will produce an ipk file. See the instructions above for installing it.
+3. This will produce an ipk file. See the instructions above for installing it.
 
 
 ## Credits
