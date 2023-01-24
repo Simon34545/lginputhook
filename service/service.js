@@ -203,14 +203,12 @@ var server = http.createServer(function (req, res) {
 			
 			fs.readFile('./interface' + path, function (error, data) {
 				if (error) {
-					res.writeHead(error.code == 'ENOENT' ? 404 : 500);
-					res.end();
+					respond(res, error.code == 'ENOENT' ? 404 : 500);
 					return;
 				}
 				
 				respond(res, 200, {'Content-Type': types[path.split('.')[path.split('.').length - 1]] || 'text/plain', 'Content-Length': data.length}, data);
 			});
-			respond(res, 404);
 		}
 	} else if (req.method == 'POST') {
 		if (path.substring(0, 8) == '/config/') {
