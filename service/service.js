@@ -106,6 +106,20 @@ function isLocalhost(ip) {
 const password = generatePassword(8);
 var passwordShown = false;
 
+function respond(res, code, headers, data) {
+	if (headers) {
+		res.writeHead(code, headers);
+	} else {
+		res.writeHead(code);
+	}
+	
+	if (data) {
+		res.write(data);
+	}
+	
+	res.end();
+}
+
 var server = http.createServer(function (req, res) {
 	var path = req.url;
 	
@@ -126,8 +140,7 @@ var server = http.createServer(function (req, res) {
 		}
 	} else {
 		if (authPassword != password) {		
-			res.writeHead(401, {'WWW-Authenticate': 'Basic'});
-			res.end();
+			respond(res, 401, {'WWW-Authenticate': 'Basic'});
 			return;
 		}
 	}
@@ -139,9 +152,7 @@ var server = http.createServer(function (req, res) {
 					data = error.code + ' ' + error.path;
 				}
 				
-				res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': data.length});
-				res.write(data);
-				res.end();
+				respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			});
 		} else if (path.substring(0, 4) == '/ip/') {
 			var interfaces = require('os').networkInterfaces();
@@ -152,9 +163,7 @@ var server = http.createServer(function (req, res) {
 				for (var i = 0; i < iface.length; i++) {
 					var alias = iface[i];
 					if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-						res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': alias.address.length});
-						res.write(alias.address);
-						res.end();
+						respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': alias.address.length}, alias.address);
 						return;
 					}
 				}
@@ -162,16 +171,12 @@ var server = http.createServer(function (req, res) {
 			
 			var data = '0.0.0.0';
 			
-			res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': data.length});
-			res.write(data);
-			res.end();
+			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			return;
 		} else if (path.substring(0, 10) == '/password/') {
 			var data = isLocalhost(req.socket.remoteAddress) ? password : '';
 			
-			res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': data.length});
-			res.write(data);
-			res.end();
+			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			return;
 		} else if (path.substring(0, 8) == '/config/') {
 			fs.readFile('.' + path, function (error, data) {
@@ -179,9 +184,7 @@ var server = http.createServer(function (req, res) {
 					data = "{}";
 				}
 				
-				res.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': data.length});
-				res.write(data);
-				res.end();
+				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length}, data);
 			});
 		} else if (path.substring(0, 11) == '/interface/') {
 			if (path[path.length - 1] == '/') {
@@ -195,13 +198,10 @@ var server = http.createServer(function (req, res) {
 					return;
 				}
 				
-				res.writeHead(200, {'Content-Type': types[path.split('.')[path.split('.').length - 1]] || 'text/plain', 'Content-Length': data.length});
-				res.write(data);
-				res.end();
+				respond(res, 200, {'Content-Type': types[path.split('.')[path.split('.').length - 1]] || 'text/plain', 'Content-Length': data.length}, data);
 			});
 		} else {
-			res.writeHead(404);
-			res.end();
+			respond(res, 404);
 		}
 	} else if (req.method == 'POST') {
 		if (path.substring(0, 8) == '/config/') {
@@ -217,37 +217,28 @@ var server = http.createServer(function (req, res) {
 				try {
 					JSON.parse(data);
 				} catch (error) {
-					res.writeHead(400);
-					res.write(error.toString());
-					res.end();
+					respond(res, 400, false, error.toString());
 					return;
 				}
 				
 				fs.writeFile('.' + path, data, function (error) {
 					if (error) {
-						res.writeHead(500);
-						res.write(error.code + ' ' + error.path);
-						res.end();
+						respond(res, 500, false, error.code + ' ' + error.path);
 					} else {
 						var response = 'Successfully saved to ' + path;
-						res.writeHead(200, {'Content-Type': 'text/plain', 'Content-Length': response.length});
-						res.write(response);
-						res.end();
+						respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': response.length}, response);
 					}
 				});
 			});
 		 } else if (path == '/reboot') {
 			child_process.exec('reboot');
-			res.writeHead(200);
-			res.end();
+			respond(res, 200);
 			process.exit();
 		} else {
-			res.writeHead(404);
-			res.end();
+			respond(res, 404);
 		}
 	} else {
-		res.writeHead(405);
-		res.end();
+		respond(res, 405);
 	}
 });
 
