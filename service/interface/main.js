@@ -200,10 +200,10 @@ document.getElementById('save').onclick = function() {
 	
 	if (res.status != 200) {
 		str += 'Failed! ' + res.status + ' ' + res.responseText;
-		document.getElementById('status').style.color = '#F00';
+		document.getElementById('status').style.color = '#C50F1F';
 	} else {
 		str += res.responseText;
-		document.getElementById('status').style.color = '#0F0';
+		document.getElementById('status').style.color = '#16C60C';
 	}
 	
 	document.getElementById('status').innerText = str;
