@@ -99,7 +99,6 @@ module.exports = (env) => [
       new CopyPlugin({
         patterns: [
           { context: 'service', from: '*.json' },
-          { to: 'config', from: './service/config'},
           { to: 'inputhook', from: './service/inputhook'},
           { to: 'interface', from: './service/interface/index.html'},
           { to: 'interface', from: './service/interface/style.css'},

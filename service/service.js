@@ -2,6 +2,7 @@ var pkgInfo = require('./package.json');
 var Service = require('webos-service');
 var child_process = require('child_process');
 var http = require('http');
+var path = require('path');
 var fs = require('fs');
 var os = require('os');
 
@@ -117,6 +118,22 @@ function getLocalIP() {
 	return '0.0.0.0';
 }
 
+function ensureDirectoryExistence(filePath) {
+  var dirname = path.dirname(filePath);
+	
+  if (fs.existsSync(dirname)) {
+    return true;
+  }
+  ensureDirectoryExistence(dirname);
+  fs.mkdirSync(dirname);
+	
+	return false;
+}
+
+if (!ensureDirectoryExistence('/home/root/.config/lginputhook/config.json')) {
+	fs.writeFileSync('/home/root/.config/lginputhook/config.json', '{}');
+}
+
 function isLocalhost(ip) {
 	return ip == '::1' || ip.indexOf('127.0.0.1') != -1;
 }
@@ -191,7 +208,7 @@ var server = http.createServer(function (req, res) {
 			});
 			return;
 		} else if (path.substring(0, 8) == '/config/') {
-			fs.readFile('.' + path, function (error, data) {
+			fs.readFile('/home/root/.config/lginputhook/' + path.substring(8), function (error, data) {
 				if (error) {
 					data = "{}";
 				}
@@ -230,7 +247,7 @@ var server = http.createServer(function (req, res) {
 					return;
 				}
 				
-				fs.writeFile('.' + path, data, function (error) {
+				fs.writeFile('/home/root/.config/lginputhook/' + path.substring(8), data, function (error) {
 					if (error) {
 						respond(res, 500, false, error.code + ' ' + error.path);
 					} else {

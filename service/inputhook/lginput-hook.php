@@ -98,7 +98,7 @@ if ($hf->hasSymbol("lginput_uinput_send_button")) {
         });
 }
 
-$configLocation = '/media/developer/apps/usr/palm/services/org.webosbrew.inputhook.service/config/keybinds.json';
+$configLocation = '/home/root/.config/lginputhook/keybinds.json';
 
 $prevMTime = 0;
 
