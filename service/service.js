@@ -194,9 +194,9 @@ var server = http.createServer(function (req, res) {
 		} else if (path.substring(0, 10) == '/apps.json') {
 			service.call("luna://com.webos.applicationManager/listApps", {}, function(response) {
 				if (!response.payload.returnValue) response.payload.apps = [{"title": "Could not get apps: " + response.payload.errorCode + " " + response.payload.errorText, "id": "org.webosbrew.inputhook"}];
-				var data = JSON.stringify(response.payload);
+				var data = Buffer(JSON.stringify(response.payload));
 				
-				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length + 1}, data);
+				respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': data.length}, data);
 			});
 			return;
 		} else if (path.substring(0, 8) == '/config/') {
