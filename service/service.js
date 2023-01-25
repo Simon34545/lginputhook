@@ -165,15 +165,7 @@ var server = http.createServer(function (req, res) {
 	var authUsername = parts.shift();
 	var authPassword = parts.join(':');
 	
-	if (isLocalhost(req.socket.remoteAddress)) {
-		if (!passwordShown) {
-			service.call("luna://com.webos.notification/createToast", {
-				"sourceId": "lginputhook",
-				"message": "Password for the settings page is: " + password
-			});
-			passwordShown = true;
-		}
-	} else {
+	if (!isLocalhost(req.socket.remoteAddress)) {
 		if (authPassword != password) {		
 			respond(res, 401, {'WWW-Authenticate': 'Basic'});
 			return;
