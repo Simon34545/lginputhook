@@ -7,8 +7,7 @@
     "build": "webpack",
     "package": "ares-package -n dist",
     "deploy": "ares-install ${npm_package_name}_${npm_package_version}_all.ipk",
-    "launch": "ares-launch ${npm_package_name}",
-    "hash": "certUtil -hashfile ${npm_package_name}_${npm_package_version}_all.ipk SHA256"
+    "launch": "ares-launch ${npm_package_name}"
   },
   "author": "simon.#1842",
   "license": "BSD",
