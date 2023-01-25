@@ -56,3 +56,5 @@ npm run package
 [smx-smx](https://github.com/smx-smx) - Created [ezinject / hookfactory](https://github.com/smx-smx/ezinject), which is used to inject the inputhook into the various processes.
 
 [Informatic](https://github.com/Informatic) - Created the original [inputhook](https://gist.github.com/Informatic/319bcaf94436b9136904473ca4f4ec9c) script.
+
+Rembihnutur#6877 (717868262058360833) - Created the icon
