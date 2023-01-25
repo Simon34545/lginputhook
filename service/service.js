@@ -130,8 +130,8 @@ function ensureDirectoryExistence(filePath) {
 	return false;
 }
 
-if (!ensureDirectoryExistence('/home/root/.config/lginputhook/config.json')) {
-	fs.writeFileSync('/home/root/.config/lginputhook/config.json', '{}');
+if (!ensureDirectoryExistence('/home/root/.config/lginputhook/keybinds.json')) {
+	fs.writeFileSync('/home/root/.config/lginputhook/keybinds.json', '{}');
 }
 
 function isLocalhost(ip) {
