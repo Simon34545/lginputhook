@@ -6,6 +6,18 @@ var path = require('path');
 var fs = require('fs');
 var os = require('os');
 
+function ensureDirectoryExistence(filePath) {
+  var dirname = path.dirname(filePath);
+	
+  if (fs.existsSync(dirname)) {
+    return true;
+  }
+  ensureDirectoryExistence(dirname);
+  fs.mkdirSync(dirname);
+	
+	return false;
+}
+
 var service = new Service(pkgInfo.name);
 
 service.activityManager.create("keepAlive", function(activity) {});
@@ -17,9 +29,24 @@ service.register('start', function(message) {
 	});
 });
 
+var autostartScript = 
+`#!/bin/sh
+
+output=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')
+
+if echo "$output" | grep -q \'status unknown\'; then
+	/var/lib/webosbrew/init.d/inputhook &
+	exit
+fi
+
+if echo "$output" | grep -q \'errorText\'; then
+	rm -f /var/lib/webosbrew/init.d/inputhook
+fi`;
+
 service.register('autostart', function(message) {
 	try {
-		fs.writeFileSync('/var/lib/webosbrew/init.d/inputhook', '#!/bin/sh\n\noutput=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')\n\nif echo "$output" | grep -q \'status unknown\'; then\n	/var/lib/webosbrew/init.d/inputhook &\n	 exit\nfi\n\nif echo "$output" | grep -q \'errorText\'; then\n	rm -f /var/lib/webosbrew/init.d/inputhook\nfi');
+		ensureDirectoryExistence('/var/lib/webosbrew/init.d/inputhook');
+		fs.writeFileSync('/var/lib/webosbrew/init.d/inputhook', autostartScript);
 		fs.chmodSync('/var/lib/webosbrew/init.d/inputhook', '755');
 		message.respond({
 			"returnValue": true,
@@ -116,18 +143,6 @@ function getLocalIP() {
 	}
 	
 	return '0.0.0.0';
-}
-
-function ensureDirectoryExistence(filePath) {
-  var dirname = path.dirname(filePath);
-	
-  if (fs.existsSync(dirname)) {
-    return true;
-  }
-  ensureDirectoryExistence(dirname);
-  fs.mkdirSync(dirname);
-	
-	return false;
 }
 
 if (!ensureDirectoryExistence('/home/root/.config/lginputhook/keybinds.json')) {
