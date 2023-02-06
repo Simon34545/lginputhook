@@ -18,7 +18,7 @@ To find the ID of a button, view the log files in the interface, press a button,
 
 The log files you should view, depend on your WebOS version and what remote you are using. Each log is described in the dropdown menu.
 
-Alternatively, I have collected the button IDs for every button on [this IR remote](https://www.lg.com/us/tv-audio-video-accessories/lg-AGF76631064-tv-remote-contol), which you can find listed [here](https://gist.github.com/Simon34545/31c528bfe8540880936fc4c580723a02).
+Alternatively, I have collected the button IDs for every button on [this IR remote](https://www.lg.com/us/tv-audio-video-accessories/lg-AGF76631064-tv-remote-contol), which you can find listed [here](https://gist.github.com/Simon34545/31c528bfe8540880936fc4c580723a02). I also created a list of [all keycodes](https://gist.github.com/Simon34545/fc5c91e0456789dd7a56a947c1148939) from a decompiled function in `network-input-service`.
 
 ## How to install
 ### Method 1, using webos dev manager:
