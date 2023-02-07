@@ -1,7 +1,7 @@
 # lginputhook
 Allows for remapping remote buttons on LG WebOS TVs.
 
-The [homebrew channel](https://github.com/webosbrew/webos-homebrew-channel/) with root access is required.
+## The [homebrew channel](https://github.com/webosbrew/webos-homebrew-channel/) with root access is required for this to work!
 
 ## How to use
 The app needs to be launched at least once for it to begin working. Afterwards it will persist even across reboots.
