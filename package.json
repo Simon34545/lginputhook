@@ -1,6 +1,6 @@
 {
   "name": "org.webosbrew.inputhook",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "LG Input Hook - Remote button remapper",
   "main": "index.js",
   "scripts": {

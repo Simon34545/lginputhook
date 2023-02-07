@@ -48,7 +48,7 @@ webOS.service.request("luna://org.webosbrew.hbchannel.service", {
 		}
 	},
 	onFailure: function (error) {
-		log("Failed to check for root");
+		log("Failed to check for root! Do you have the homebrew channel installed? Are you rooted? The root status in the homebrew channel settings needs to say ok.");
 		log("[" + error.errorCode + "]: " + error.errorText);
 		return;
 	}
