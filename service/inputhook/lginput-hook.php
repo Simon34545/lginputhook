@@ -10,12 +10,19 @@ typedef struct {
     int fd;
     keybind_info_t* keybinds;
 } uinput_info_t;
+typedef struct {
+    uint64_t time;
+    uint16_t type;
+    uint16_t code;
+    int32_t value;
+} input_event_t;
 ");
 
 $fd = fopen("/tmp/lginput-hook-" . $argv[1] . ".log", "a");
 function logmsg($str) {
     global $fd;
     fwrite($fd, $str . "\n");
+    echo $str . "\n";
     // fflush($fd);
     fsync($fd);
 }
@@ -30,13 +37,13 @@ function handleKey(int $keycode, int $state) {
 
     if (isset($keybinds[$keycode])) {
         if ($keybinds[$keycode]["action"] == "exec" or $keybinds[$keycode]["action"] == "launch") {
-						$cmd = "";
+            $cmd = "";
 
-						if ($keybinds[$keycode]["action"] == "launch") {
-								$cmd = 'luna-send -n 1 "luna://com.webos.applicationManager/launch" \'{"id":"' . $keybinds[$keycode]["id"] . '"}\'';
-						} else {
-								$cmd = $keybinds[$keycode]["command"];
-						}
+            if ($keybinds[$keycode]["action"] == "launch") {
+                $cmd = 'luna-send -n 1 "luna://com.webos.applicationManager/launch" \'{"id":"' . $keybinds[$keycode]["id"] . '"}\'';
+            } else {
+                $cmd = $keybinds[$keycode]["command"];
+            }
 
             if ($state == 1) {
                 logmsg("$keycode: execing... {$cmd}");
@@ -96,6 +103,21 @@ if ($hf->hasSymbol("lginput_uinput_send_button")) {
                 return $orig($fd, $type, $code, $value);
             }
         });
+} else if($hf->hasSymbol("write")) {
+    // Generic write(2) hook
+    $hf->newHook("ssize_t (*)(int, input_event_t*, size_t)", "write", function($orig, $fd, $buf, $size) {
+        $fdp = readlink("/proc/self/fd/$fd");
+        if ($fdp == "/dev/uinput" && $size >= 16 && $buf[0]->type == 1) {
+            var_dump($buf);
+            $result = handleKey($buf[0]->code, $buf[0]->value);
+            if ($result['action'] == 'ignore') {
+                return $size;
+            } else if ($result['action'] == 'replace') {
+                $buf[0]->code = $result['keycode'];
+            }
+        }
+        return $orig($fd, $buf, $size);
+    });
 }
 
 $configLocation = '/home/root/.config/lginputhook/keybinds.json';
