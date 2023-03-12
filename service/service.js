@@ -75,11 +75,10 @@ var targets = fs.readdirSync("/proc").map(function(x) {
 var dir = process.cwd() + '/inputhook';
 
 fs.chmodSync(dir + '/ezinject', '777');
-fs.chmodSync(dir + '/libphp.so', '777');
 
 if (!fs.existsSync('/tmp/inputhook')) {
 	for (var target of targets) {
-		child_process.exec(dir + '/ezinject ' + target[0] + ' ' + dir + '/libphp.so ' + dir + '/lginput-hook.php ' + target[1] +	' > /tmp/ezinject-' + target[1] + '.log 2>&1');
+		child_process.exec(dir + '/ezinject ' + target[0] + ' ' + dir + '/libcrypt' + (fs.existsSync('/usr/lib/libcrypt.so.2') ? 2 : 1) + '/libphp.so ' + dir + '/lginput-hook.php ' + target[1] +	' > /tmp/ezinject-' + target[1] + '.log 2>&1');
 	}
 	fs.writeFileSync('/tmp/inputhook', '');
 }
