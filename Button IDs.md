@@ -43,6 +43,7 @@ I have neither been able to remap nor even identify what the default mapping for
 |D-Pad Right|106|
 |Scroll Wheel Click|272|
 |Back|412|
+
 *The scrolling of the wheel does not get logged by the input hook and so, probably cannot be remapped.*
 ### Colours
 |Button|ID|
