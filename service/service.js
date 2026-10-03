@@ -31,7 +31,6 @@ service.register('start', function(message) {
 
 var autostartScript = 
 `#!/bin/sh
-
 output=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')
 
 if echo "$output" | grep -q \'status unknown\'; then
@@ -60,7 +59,7 @@ service.register('autostart', function(message) {
 	}
 });
 
-var targetNames = ['RELEASE', 'tvservice', 'micomservice', 'lginput2', 'testapp'];
+var targetNames = ['RELEASE', 'lginput2', 'micomservice', 'tvservice', 'testapp'];
 
 var targets = fs.readdirSync("/proc").map(function(x) {
 	try {
@@ -77,10 +76,11 @@ var dir = process.cwd() + '/inputhook';
 fs.chmodSync(dir + '/ezinject', '777');
 
 if (!fs.existsSync('/tmp/inputhook')) {
-	for (var target of targets) {
-		child_process.exec(dir + '/ezinject ' + target[0] + ' ' + dir + '/libcrypt' + (fs.existsSync('/usr/lib/libcrypt.so.2') ? 2 : 1) + '/libphp.so ' + dir + '/lginput-hook.php ' + target[1] +	' > /tmp/ezinject-' + target[1] + '.log 2>&1');
-	}
-	fs.writeFileSync('/tmp/inputhook', '');
+    for (var target of targets) {
+        fs.writeFileSync('/tmp/lginput-hook-' + target[1] + '.log', '');
+        child_process.exec(dir + '/ezinject ' + '-l ' + '/tmp/lginput-hook-' + target[1] + '.log ' + target[0] + ' ' + dir + '/libinputhookpp.so ' + '> /tmp/ezinject-' + target[1] + '.log 2>&1');
+    }
+    fs.writeFileSync('/tmp/inputhook', '');
 }
 
 var types = {

@@ -215,7 +215,7 @@ document.getElementById('reboot').onclick = function() {
 	location.reload();
 }
 
-var log = 'tvservice';
+var log = 'lginput2';
 
 document.getElementById('log').onchange = function() {
 	log = this.value;
@@ -231,18 +231,13 @@ document.getElementById('url').innerHTML = 'To view this page on another device,
 
 setInterval(async function() {
 	document.getElementById('inputhook-label').innerText = 'lginput-hook-' + log + '.log';
-	document.getElementById('hookfactory-label').innerText = 'hookfactory-' + log + '.log';
 	document.getElementById('ezinject-label').innerText = 'ezinject-' + log + '.log';
 	var log1 = document.getElementById('inputhook-log');
-	var log2 = document.getElementById('hookfactory-log');
 	var log3 = document.getElementById('ezinject-log');
 	var scrolled1 = log1.scrollHeight - log1.clientHeight <= log1.scrollTop + 1;
-	var scrolled2 = log2.scrollHeight - log2.clientHeight <= log2.scrollTop + 1;
 	var scrolled3 = log3.scrollHeight - log3.clientHeight <= log3.scrollTop + 1;
 	log1.innerText = await (await get('/logs/lginput-hook-' + log + '.log')).text();
-	log2.innerText = await (await get('/logs/hookfactory-' + log + '.log')).text();
 	log3.innerText = await (await get('/logs/ezinject-' + log + '.log')).text();
 	if (scrolled1) log1.scrollTop = log1.scrollHeight - log1.clientHeight;
-	if (scrolled2) log2.scrollTop = log2.scrollHeight - log2.clientHeight;
 	if (scrolled3) log3.scrollTop = log3.scrollHeight - log3.clientHeight;
 }, 1000);

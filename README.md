@@ -57,4 +57,6 @@ npm run package
 
 [Informatic](https://github.com/Informatic) - Created the original [inputhook](https://gist.github.com/Informatic/319bcaf94436b9136904473ca4f4ec9c) script.
 
+[Sundermann](https://github.com/sundermann) - Created [inputhookpp](https://github.com/sundermann/inputhookpp)
+
 Rembihnutur#6877 (717868262058360833) - Created the icon
