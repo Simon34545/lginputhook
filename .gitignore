@@ -1,4 +1,5 @@
 node_modules
 *.ipk
+*.manifest.json
 dist
 dummyserver.js

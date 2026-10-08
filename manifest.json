@@ -1,0 +1,6 @@
+{
+  "appDescription": "LG Input Hook - Button remapper for TV remotes",
+  "iconUri": "https://raw.githubusercontent.com/Simon34545/lginputhook/main/assets/largeIcon.png",
+  "sourceUrl": "https://github.com/Simon34545/lginputhook",
+  "rootRequired": true
+}

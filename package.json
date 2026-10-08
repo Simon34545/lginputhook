@@ -1,15 +1,16 @@
 {
   "name": "org.webosbrew.inputhook",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "LG Input Hook - Remote button remapper",
   "main": "index.js",
   "scripts": {
     "build": "webpack",
+    "manifest": "node buildmanifest.js",
     "package": "ares-package -n dist",
     "deploy": "ares-install ${npm_package_name}_${npm_package_version}_all.ipk",
     "launch": "ares-launch ${npm_package_name}"
   },
-  "author": "simon.#1842",
+  "author": "Simon34545",
   "license": "BSD",
   "dependencies": {
     "core-js": "^3.14.0",
@@ -20,7 +21,7 @@
   "devDependencies": {
     "@babel/core": "^7.14.3",
     "@babel/preset-env": "^7.14.4",
-    "@webosose/ares-cli": "^2.2.0",
+    "@webos-tools/cli": "^3.2.6",
     "add-asset-webpack-plugin": "^2.0.1",
     "babel-loader": "^8.2.2",
     "copy-webpack-plugin": "^9.0.0",

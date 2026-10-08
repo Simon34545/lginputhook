@@ -1,11 +1,11 @@
 {
   "name": "org.webosbrew.inputhook.service",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "LG Input Hook Service",
   "main": "service.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "simon.#1842",
+  "author": "Simon34545",
   "license": "BSD"
 }
