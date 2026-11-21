@@ -3,6 +3,23 @@ Allows for remapping remote buttons on LG WebOS TVs.
 
 ## The [homebrew channel](https://github.com/webosbrew/webos-homebrew-channel/) with root access is required for this to work!
 
+## Screenshots
+The interface on the TV (or any browser): every button of the Magic Remote in place, its current function at a glance, and a picker for the new one.
+
+![Buttons tab: the remote with labelled buttons, Prime Video selected with the app picker](docs/screenshots/desktop-buttons.png)
+
+| Custom command | Advanced tab |
+|-|-|
+| ![A button running a ready-made command](docs/screenshots/desktop-command.png) | ![Advanced tab: status, logs, config file, key codes](docs/screenshots/desktop-advanced.png) |
+
+On a phone: scan the QR code shown under **Phone** and you are logged in.
+
+| Remote | Editing a button | QR code |
+|-|-|-|
+| ![Phone: remote with labelled buttons](docs/screenshots/phone-remote.png) | ![Phone: choosing a function](docs/screenshots/phone-editor.png) | ![Phone: QR code to open the page](docs/screenshots/phone-qr.png) |
+
+*Screenshots use sample data.*
+
 ## How to use
 The app needs to be launched at least once for it to begin working. Afterwards it will persist even across reboots. After installing or updating the app, launch it once and restart the TV so the hook is (re)injected.
 
