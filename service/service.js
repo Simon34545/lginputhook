@@ -29,7 +29,23 @@ service.register('start', function(message) {
 	});
 });
 
-var autostartScript = 
+function getStatus() {
+	return {
+		version: pkgInfo.version,
+		root: typeof process.getuid === 'function' && process.getuid() === 0,
+		injected: fs.existsSync('/tmp/inputhook'),
+		autostart: fs.existsSync('/var/lib/webosbrew/init.d/inputhook')
+	};
+}
+
+// Lets the app skip the slow elevate/autostart steps when nothing needs doing.
+service.register('status', function(message) {
+	var status = getStatus();
+	status.returnValue = true;
+	message.respond(status);
+});
+
+var autostartScript =
 `#!/bin/sh
 output=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')
 
@@ -152,8 +168,27 @@ function isLocalhost(ip) {
 	return ip == '::1' || ip.indexOf('127.0.0.1') != -1;
 }
 
-const password = generatePassword(8);
+// The password is kept across restarts so phones and PCs stay logged in; it can be changed from the interface.
+var passwordFile = '/home/root/.config/lginputhook/password';
+var password = '';
+try {
+	password = fs.readFileSync(passwordFile, {encoding: 'utf8'}).trim();
+} catch (error) {}
+if (!/^[0-9A-F]{8,}$/.test(password)) {
+	password = generatePassword(8);
+	try {
+		fs.writeFileSync(passwordFile, password);
+	} catch (error) {}
+}
 var passwordShown = false;
+
+// The interface files are served without a password so the page can log in by itself
+// (password from the QR code link, or typed into the page). Everything else needs it.
+function isPublic(method, path) {
+	if (method != 'GET') return false;
+	var p = path.split('?')[0];
+	return p == '/' || /^\/[\w.-]+\.(html|js|css)$/.test(p);
+}
 
 function respond(res, code, headers, data) {
 	if (headers) {
@@ -174,14 +209,18 @@ var server = http.createServer(function (req, res) {
 	
 	var header = req.headers.authorization || '';
 	var token = header.split(/\s+/).pop() || '';
-	var auth = atob(token);
+	var auth = '';
+	try {
+		auth = atob(token);
+	} catch (error) {}
 	var parts = auth.split(/:/);
 	var authUsername = parts.shift();
 	var authPassword = parts.join(':');
-	
-	if (!isLocalhost(req.socket.remoteAddress)) {
-		if (authPassword != password) {		
-			respond(res, 401, {'WWW-Authenticate': 'Basic'});
+
+	if (!isLocalhost(req.socket.remoteAddress) && !isPublic(req.method, path)) {
+		if (authPassword != password) {
+			// no WWW-Authenticate header: the interface asks for the password itself instead of a browser popup
+			respond(res, 401, {'Content-Type': 'text/plain'}, 'Password required');
 			return;
 		}
 	}
@@ -195,7 +234,15 @@ var server = http.createServer(function (req, res) {
 				
 				respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			});
-		} else if (path.substring(0, 4) == '/ip/') {			
+		} else if (path == '/status.json') {
+			var status = getStatus();
+			status.targets = targets.map(function (t) { return t[1]; });
+			// Shown in the interface so other devices can be connected; this endpoint itself requires the password.
+			status.address = 'http://' + getLocalIP() + ':1842/';
+			status.password = password;
+			var data = JSON.stringify(status);
+			respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data)}, data);
+		} else if (path.substring(0, 4) == '/ip/') {
 			var data = getLocalIP();
 			
 			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
@@ -261,6 +308,38 @@ var server = http.createServer(function (req, res) {
 						respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': response.length}, response);
 					}
 				});
+			});
+		} else if (path == '/password/reset') {
+			// New password: every other device has to log in again (scan the QR code)
+			password = generatePassword(8);
+			try {
+				fs.writeFileSync(passwordFile, password);
+			} catch (error) {}
+			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': password.length}, password);
+		} else if (path == '/run') {
+			// Run a binding's action now ("Try it" in the interface): {"action":"launch","id":...} or {"action":"exec","command":...}
+			var runBody = [];
+			req.on('data', function (chunk) {
+				runBody.push(chunk);
+			});
+			req.on('end', function () {
+				var bind;
+				try {
+					bind = JSON.parse(Buffer.concat(runBody).toString());
+				} catch (error) {
+					respond(res, 400, false, error.toString());
+					return;
+				}
+				if (bind && bind.action == 'launch' && typeof bind.id == 'string' && bind.id) {
+					service.call('luna://com.webos.applicationManager/launch', {id: bind.id}, function (response) {
+						respond(res, response.payload.returnValue ? 200 : 500, {'Content-Type': 'application/json'}, JSON.stringify(response.payload));
+					});
+				} else if (bind && bind.action == 'exec' && typeof bind.command == 'string' && bind.command) {
+					child_process.exec(bind.command, function () {});
+					respond(res, 200, {'Content-Type': 'application/json'}, '{"returnValue":true}');
+				} else {
+					respond(res, 400, false, 'Only launch and exec actions can be run.');
+				}
 			});
 		 } else if (path == '/reboot') {
 			child_process.exec('reboot');

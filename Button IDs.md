@@ -61,3 +61,23 @@ I have neither been able to remap nor even identify what the default mapping for
 |Rakuten TV|1044|
 |Google Assistant|1117|
 |Alexa|1086|
+
+## LG Magic Remote (Model MR20GA, US layout, part AKB75855501)
+Tested on an LG CX (webOS 5). Most IDs match the MR21GC above; the differences are List, `...`, and the buttons the MR21GC does not have.
+|Button|ID|
+|-|-|
+|Number pad 1-9, 0|2-10, 11 (same as above)|
+|List (`-/LIST`)|771|
+|`...` (AD/SAP)|994|
+|Set-top box power|1021|
+|Guide|362|
+|Input|241|
+|Home / Settings / Voice / Mute|773 / 139 / 428 / 113|
+|Volume + / -, Channel + / -|115 / 114, 402 / 403|
+|D-Pad, Scroll Wheel Click, Back|as above (103/108/105/106, 272, 412)|
+|Red / Green / Yellow / Blue|398 / 399 / 400 / 401|
+|Netflix / Prime Video|1037 / 1038|
+|Movies|1083|
+|Play / Pause|207 / 119|
+
+*The interface can also learn IDs: select a button on the remote picture, press "Learn code", then press the real button.*
