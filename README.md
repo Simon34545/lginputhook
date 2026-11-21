@@ -4,21 +4,29 @@ Allows for remapping remote buttons on LG WebOS TVs.
 ## The [homebrew channel](https://github.com/webosbrew/webos-homebrew-channel/) with root access is required for this to work!
 
 ## How to use
-The app needs to be launched at least once for it to begin working. Afterwards it will persist even across reboots.
+The app needs to be launched at least once for it to begin working. Afterwards it will persist even across reboots. After installing or updating the app, launch it once and restart the TV so the hook is (re)injected.
 
-To remap a button, press `Add keybind` in the interface.
+The interface shows a picture of your Magic Remote (pick the model under the picture: MR20GA, or MR21GA / MR22GA). It works with the remote on the TV (arrows, OK, Back) and in a browser on another device.
 
-Set the ID to the ID of the button you want to remap
+1. Select a button on the picture, or press it on the real remote: the button lights up and `Live from the remote` shows its ID.
+2. Choose what it should do: **Default**, **Open app or input** (any installed app, HDMI inputs, Live TV, screen off), **Act as another key**, **Run a command**, or **Disable**. Launch and command actions can be tried right away with **Try it now**.
+3. Press **Apply to TV**. The hook reloads the config within a second, and the interface confirms it.
 
-Next, choose what you want to do with this button. To disable the button, choose `Disable`. To make the button execute a command, choose `Execute`, and enter the command. To replace the button with another button, choose `Replace`, and fill in the ID of the button you want to replace it with.
+If a button on the picture has the wrong ID (remotes differ by region), select it, press **Learn code** and press the real button. Buttons that are not on the picture can be edited by ID from **More > Edit a key by its code**. **More > History** restores the configuration from before any Apply.
 
-When you are done, press `Save changes`. The changes should be automatically applied.
+The **Advanced** tab shows the service status, the hook and ezinject logs for each hooked process, the raw `keybinds.json` (edit, import, download), a table of known key IDs, and a restart button.
 
-To find the ID of a button, view the log files in the interface, press a button, and see what pops up. You should see something like `id => 1`. The first number is the ID of the button.
+The configuration lives in `/home/root/.config/lginputhook/keybinds.json`; keys are button IDs:
+```json
+{
+  "1038": {"action": "launch", "id": "com.webos.app.hdmi1"},
+  "398": {"action": "replace", "keycode": 168},
+  "1037": {"action": "exec", "command": "luna-send -n 1 luna://com.webos.notification/createToast '{\"message\":\"hi\"}'"},
+  "428": {"action": "ignore"}
+}
+```
 
-The log files you should view, depend on your WebOS version and what remote you are using. Each log is described in the dropdown menu.
-
-Alternatively, I have collected the button IDs for every button on [this IR remote](https://www.lg.com/us/tv-audio-video-accessories/lg-AGF76631064-tv-remote-contol), which you can find listed [here](https://gist.github.com/Simon34545/31c528bfe8540880936fc4c580723a02). I also created a list of [all keycodes](https://gist.github.com/Simon34545/fc5c91e0456789dd7a56a947c1148939) from a decompiled function in `network-input-service`.
+Wheel scrolling and the Power button cannot be remapped. Known button IDs are listed in [Button IDs.md](Button%20IDs.md); I have also collected the button IDs for every button on [this IR remote](https://www.lg.com/us/tv-audio-video-accessories/lg-AGF76631064-tv-remote-contol), which you can find listed [here](https://gist.github.com/Simon34545/31c528bfe8540880936fc4c580723a02), and a list of [all keycodes](https://gist.github.com/Simon34545/fc5c91e0456789dd7a56a947c1148939) from a decompiled function in `network-input-service`.
 
 ## How to install
 ### Method 1, using webos dev manager:

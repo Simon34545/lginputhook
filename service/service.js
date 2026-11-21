@@ -29,7 +29,23 @@ service.register('start', function(message) {
 	});
 });
 
-var autostartScript = 
+function getStatus() {
+	return {
+		version: pkgInfo.version,
+		root: typeof process.getuid === 'function' && process.getuid() === 0,
+		injected: fs.existsSync('/tmp/inputhook'),
+		autostart: fs.existsSync('/var/lib/webosbrew/init.d/inputhook')
+	};
+}
+
+// Lets the app skip the slow elevate/autostart steps when nothing needs doing.
+service.register('status', function(message) {
+	var status = getStatus();
+	status.returnValue = true;
+	message.respond(status);
+});
+
+var autostartScript =
 `#!/bin/sh
 output=$(luna-send -n 1 "luna://org.webosbrew.inputhook.service/start" \'{}\')
 
@@ -195,7 +211,12 @@ var server = http.createServer(function (req, res) {
 				
 				respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
 			});
-		} else if (path.substring(0, 4) == '/ip/') {			
+		} else if (path == '/status.json') {
+			var status = getStatus();
+			status.targets = targets.map(function (t) { return t[1]; });
+			var data = JSON.stringify(status);
+			respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data)}, data);
+		} else if (path.substring(0, 4) == '/ip/') {
 			var data = getLocalIP();
 			
 			respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': data.length}, data);
@@ -261,6 +282,31 @@ var server = http.createServer(function (req, res) {
 						respond(res, 200, {'Content-Type': 'text/plain', 'Content-Length': response.length}, response);
 					}
 				});
+			});
+		} else if (path == '/run') {
+			// Run a binding's action now ("Try it" in the interface): {"action":"launch","id":...} or {"action":"exec","command":...}
+			var runBody = [];
+			req.on('data', function (chunk) {
+				runBody.push(chunk);
+			});
+			req.on('end', function () {
+				var bind;
+				try {
+					bind = JSON.parse(Buffer.concat(runBody).toString());
+				} catch (error) {
+					respond(res, 400, false, error.toString());
+					return;
+				}
+				if (bind && bind.action == 'launch' && typeof bind.id == 'string' && bind.id) {
+					service.call('luna://com.webos.applicationManager/launch', {id: bind.id}, function (response) {
+						respond(res, response.payload.returnValue ? 200 : 500, {'Content-Type': 'application/json'}, JSON.stringify(response.payload));
+					});
+				} else if (bind && bind.action == 'exec' && typeof bind.command == 'string' && bind.command) {
+					child_process.exec(bind.command, function () {});
+					respond(res, 200, {'Content-Type': 'application/json'}, '{"returnValue":true}');
+				} else {
+					respond(res, 400, false, 'Only launch and exec actions can be run.');
+				}
 			});
 		 } else if (path == '/reboot') {
 			child_process.exec('reboot');

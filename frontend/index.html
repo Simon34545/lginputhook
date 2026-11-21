@@ -3,14 +3,27 @@
 	<head>
 		<style type="text/css">
 			body {
-				background-color: #0C0C0C;
-				color: #CCCCCC;
-				font-family: monospace;
-				font-size: 18px;
+				background-color: #0d0e12;
+				color: #8b90a0;
+				font-family: "LG Smart UI", Roboto, sans-serif;
+				font-size: 22px;
+				margin: 0;
 			}
+			#splash {
+				position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+				display: flex; flex-direction: column; align-items: center; justify-content: center;
+			}
+			#splash b { color: #e9ebf1; font-size: 34px; margin-top: 24px; }
+			#splash span { margin-top: 10px; }
+			pre { margin: 30px 60px; font-family: monospace; font-size: 18px; color: #cccccc; white-space: pre-wrap; }
 		</style>
 	</head>
 	<body>
+		<div id="splash">
+			<svg width="96" height="96" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#3dd6c6"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="16" fill="#1d2029"/><rect x="22" y="10" width="20" height="44" rx="10" fill="url(#g)"/><circle cx="32" cy="34" r="6" fill="#1d2029"/><circle cx="32" cy="18" r="2.6" fill="#1d2029"/><circle cx="32" cy="47" r="2.2" fill="#1d2029"/></svg>
+			<b>LG Input Hook</b>
+			<span id="step">Starting…</span>
+		</div>
 		<script src="index.js"></script>
 	</body>
 </html>

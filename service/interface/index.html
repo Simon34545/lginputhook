@@ -1,39 +1,53 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>LG Input Hook configuration</title>
-		<link type="text/css" rel="stylesheet" href="style.css">
-	</head>
-	<body>
-		<span id="url"></span>
-		<br>
-		<br>
-		<span>Key binds:</span>
-		<div id="keybinds">
-		</div>
-		<span id="status" style="color: #0F0;"></span>
-		<br>
-		<button id="create">Add keybind</button>
-		<button id="save">Save changes</button>
-		<br>
-		<button id="reboot">Reboot</button>
-		<br>
-		<br>
-		<span>View logs:</span>
-		<select id="log">
-			<option value="RELEASE">RELEASE (IR remote on some older WebOS versions)</option>
-			<option value="tvservice">tvservice (IR remote on WebOS 4.x and below)</option>
-			<option value="micomservice">micomservice (IR remote on WebOS 5.x and up)</option>
-			<option value="lginput2" selected>lginput2 (LG Magic Remote)</option>
-			<option value="testapp">testapp (meant for debugging purposes)</option>
-		</select>
-		<br>
-		<div id="logs">
-			<span id="inputhook-label">lginput-hook.log:</span>
-			<pre class="log" id="inputhook-log"></pre>
-			<span id="ezinject-label">ezinject.log:</span>
-			<pre class="log" id="ezinject-log"></pre>
-		</div>
-		<script src="main.js"></script>
-	</body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LG Input Hook</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><svg class="logo" viewBox="0 0 64 64"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#3dd6c6"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="16" fill="#1d2029"/><rect x="22" y="10" width="20" height="44" rx="10" fill="url(#lg1)"/><circle cx="32" cy="34" r="6" fill="#1d2029"/><circle cx="32" cy="18" r="2.6" fill="#1d2029"/><circle cx="32" cy="47" r="2.2" fill="#1d2029"/></svg><div><b>LG Input Hook</b><span>Remote button mapper</span></div></div>
+  <div class="tabs"><button class="tab on" id="tab-buttons">Buttons</button><button class="tab" id="tab-advanced">Advanced</button></div>
+  <div class="status" id="status"><i class="dot"></i><span>Connecting…</span></div>
+  <div class="spacer"></div>
+  <span class="badge hidden" id="dirty">Unsaved changes</span>
+  <button class="ghost" id="btn-more" tabindex="0">More</button>
+  <button class="ghost" id="btn-revert" disabled>Discard</button>
+  <button class="primary" id="btn-apply" disabled>Apply to TV</button>
+</header>
+
+<main>
+  <section class="remote-wrap">
+    <svg id="remote" viewBox="0 0 300 1000" role="img" aria-label="Magic Remote"></svg>
+    <button class="ghost model-btn" id="btn-model" title="Change remote model"><span id="model-name">Remote</span> <svg class="ico" viewBox="0 0 24 24" width="1em" height="1em"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="legend">
+      <span><i class="lg pass"></i>Default</span><span><i class="lg replace"></i>Other key</span>
+      <span><i class="lg launch"></i>App / input</span><span><i class="lg exec"></i>Command</span><span><i class="lg ignore"></i>Off</span>
+    </div>
+  </section>
+
+  <section class="panel" id="panel"></section>
+
+  <aside class="side">
+    <div class="card">
+      <h3>Live from the remote</h3>
+      <div id="live" class="live"><span class="muted">Press a button on the remote…</span></div>
+    </div>
+    <div class="card grow">
+      <h3>All assignments</h3>
+      <div id="assignments" class="assign-list"></div>
+    </div>
+    <div class="card" id="pc-card"></div>
+  </aside>
+</main>
+
+<section class="advanced hidden" id="advanced"></section>
+
+<div class="modal hidden" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast hidden" id="toast"></div>
+<script src="main.js"></script>
+</body>
 </html>
