@@ -78,9 +78,12 @@ main > .side { width: 22vw; min-width: 16rem; }
 .act .ic { color: #8b90a0; }
 .act.on .ic { color: #e9ebf1; }
 .empty .big .ico { width: 3.2rem; height: 3.2rem; stroke-width: 1.4; }
-.rk .tag { font-size: 9px; fill: #8b90a0; text-anchor: middle; pointer-events: none; }
-.rk.a-replace .tag { fill: #3dd6c6; } .rk.a-launch .tag { fill: #8b7cff; }
-.rk.a-exec .tag { fill: #f5a524; } .rk.a-ignore .tag { fill: #e5484d; }
+.rk .tag { font-size: 9.5px; font-weight: 700; fill: #f3f4f8; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.rk .tagbg { fill: #0d0e12; stroke-width: 1.2; pointer-events: none; }
+.rk.a-replace .tagbg { stroke: #3dd6c6; fill: #0b2a27; }
+.rk.a-launch .tagbg { stroke: #8b7cff; fill: #221d4a; }
+.rk.a-exec .tagbg { stroke: #f5a524; fill: #3a2a0c; }
+.rk.a-ignore .tagbg { stroke: #e5484d; fill: #3a1214; }
 .rk.locked { cursor: not-allowed; opacity: .6; }
 .body { fill: url(#bodyGrad); stroke: #2e3240; stroke-width: 1.5; }
 
@@ -182,10 +185,66 @@ pre.log { background: #0d0e12; border: 1px solid #2a2e3a; border-radius: 10px; p
 .toast { position: fixed; bottom: 1.6rem; left: 50%; transform: translateX(-50%); background: #262a36; border: 1px solid #2a2e3a; padding: .8rem 1.3rem; border-radius: 12px; z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
 .toast.ok { border-color: #30a46c; } .toast.err { border-color: #e5484d; }
 
+/* header action group (becomes a bottom bar on phones) */
+.actionbar { display: flex; align-items: center; }
+.actionbar > * { margin-left: .8rem; }
+.icon-btn { display: flex; align-items: center; }
+.icon-btn span { margin-left: .4rem; }
+
+/* QR code */
+.qr-wrap { display: flex; justify-content: center; margin: .4rem 0 1rem; }
+.qr { background: #fff; border-radius: 12px; padding: 0; image-rendering: pixelated; max-width: 80vw; height: auto; }
+
+/* tablets and narrow windows: one column */
 @media (max-width: 1100px) {
   body { overflow: auto; height: auto; }
   main { flex-direction: column; height: auto; }
-  main > .remote-wrap, main > .panel, main > .side { width: auto; margin-right: 0; margin-bottom: 1rem; }
+  main > .remote-wrap, main > .panel, main > .side { width: auto; min-width: 0; margin-right: 0; margin-bottom: 1rem; }
   #remote { height: 80vh; }
   .actions .act { width: calc(50% - .7rem); }
+  .advanced { flex-direction: column; height: auto; }
+  .adv-col { width: auto; margin-right: 0; }
+  .card.grow { flex: none; }
+  .assign-list { max-height: 18rem; }
+}
+
+/* phones */
+@media (max-width: 700px) {
+  html { font-size: 15px; }
+  body { padding-bottom: calc(4.4rem + env(safe-area-inset-bottom)); -webkit-tap-highlight-color: transparent; }
+  .top { position: sticky; top: 0; z-index: 5; height: auto; flex-wrap: wrap; padding: .55rem .8rem; }
+  .top > * { margin-right: .5rem; }
+  .brand .logo { width: 1.9rem; height: 1.9rem; margin-right: .5rem; }
+  .brand span { display: none; }
+  .brand b { font-size: 1rem; }
+  .status { order: 10; width: 100%; margin: .45rem 0 0; padding: .25rem .7rem; font-size: .78rem; }
+  .tabs { margin-left: auto; }
+  .tab { padding: .4rem .7rem; }
+  .spacer { display: none; }
+  .icon-btn span { display: none; }
+  #btn-phone, #btn-more { padding: .45rem .6rem; }
+  .actionbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; justify-content: flex-end; background: #14161c;
+    border-top: 1px solid #2a2e3a; padding: .6rem .8rem calc(.6rem + env(safe-area-inset-bottom)); }
+  .actionbar .badge { margin-right: auto; margin-left: 0; }
+  main, .advanced { padding: .8rem; }
+  #remote { height: 76vh; }
+  .panel { padding: 1rem; }
+  .panel { scroll-margin-top: 7.5rem; }
+  .app { flex-wrap: wrap; }
+  .app .id { width: 100%; margin-top: .15rem; }
+  .panel h2 { font-size: 1.35rem; }
+  .head-row { flex-wrap: wrap; }
+  .actions .act { padding: .7rem .75rem; }
+  .act small { display: none; }
+  .now { flex-wrap: wrap; }
+  .now button { margin: .5rem 0 0; }
+  .field { flex-wrap: wrap; }
+  .field > * { margin-bottom: .4rem; }
+  input[type=text], input[type=number], input[type=search], textarea { font-size: 16px; }
+  .applist { max-height: 50vh; }
+  .codes span { width: 50%; }
+  pre.log { height: 12rem; }
+  .sheet { width: 100%; max-width: 100%; max-height: 92vh; border-radius: 18px 18px 0 0; padding: 1.1rem; }
+  .modal { align-items: flex-end; }
+  .toast { bottom: calc(5rem + env(safe-area-inset-bottom)); width: calc(100% - 2rem); }
 }

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14161c">
 <title>LG Input Hook</title>
 
 <link rel="stylesheet" href="style.css">
@@ -13,10 +14,13 @@
   <div class="tabs"><button class="tab on" id="tab-buttons">Buttons</button><button class="tab" id="tab-advanced">Advanced</button></div>
   <div class="status" id="status"><i class="dot"></i><span>Connecting…</span></div>
   <div class="spacer"></div>
-  <span class="badge hidden" id="dirty">Unsaved changes</span>
+  <button class="ghost icon-btn" id="btn-phone" title="Open on your phone (QR code)"><svg class="ico" viewBox="0 0 24 24" width="1.2em" height="1.2em"><path d="M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h2v2h-2z M18 14h2v2h-2z M14 18h2v2h-2z M18 18h2v2h-2z"/></svg><span>Phone</span></button>
   <button class="ghost" id="btn-more" tabindex="0">More</button>
-  <button class="ghost" id="btn-revert" disabled>Discard</button>
-  <button class="primary" id="btn-apply" disabled>Apply to TV</button>
+  <div class="actionbar">
+    <span class="badge hidden" id="dirty">Unsaved changes</span>
+    <button class="ghost" id="btn-revert" disabled>Discard</button>
+    <button class="primary" id="btn-apply" disabled>Apply to TV</button>
+  </div>
 </header>
 
 <main>

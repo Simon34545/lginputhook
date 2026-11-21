@@ -1,4 +1,5 @@
 import 'whatwg-fetch';
+import qrcode from './qrcode.js';
 
 /* LG Input Hook - modern UI. Served by the Input Hook service itself (port 1842), so it runs both
  * on the TV (the app opens http://127.0.0.1:1842/) and in a PC browser (http://<tv-ip>:1842/).
@@ -33,9 +34,9 @@ var LAUNCH_PICKS = [
   { id: 'com.webos.app.livetv', title: 'Live TV' }, { id: 'webos.screen.off', title: 'Screen off' }
 ];
 var EXEC_PRESETS = [
-  { title: 'Show a message on the TV', command: 'luna-send -n 1 luna://com.webos.notification/createToast \'{"sourceId":"org.webosbrew.inputhook","message":"Hello from the remote"}\'' },
-  { title: 'Turn the screen off (sound keeps playing)', command: 'luna-send -n 1 luna://com.webos.service.tvpower/power/turnOffScreen \'{}\'' },
-  { title: 'Switch to HDMI 1', command: 'luna-send -n 1 luna://com.webos.applicationManager/launch \'{"id":"com.webos.app.hdmi1"}\'' }
+  { title: 'Show a message on the TV', short: 'Message', command: 'luna-send -n 1 luna://com.webos.notification/createToast \'{"sourceId":"org.webosbrew.inputhook","message":"Hello from the remote"}\'' },
+  { title: 'Turn the screen off (sound keeps playing)', short: 'Screen off', command: 'luna-send -n 1 luna://com.webos.service.tvpower/power/turnOffScreen \'{}\'' },
+  { title: 'Switch to HDMI 1', short: 'HDMI 1', command: 'luna-send -n 1 luna://com.webos.applicationManager/launch \'{"id":"com.webos.app.hdmi1"}\'' }
 ];
 
 var WHEEL_NOTE = 'Only pressing the wheel can be changed. Scrolling it is not a button press, so Input Hook never sees it and it cannot be remapped.';
@@ -201,17 +202,58 @@ function shortTag(b) {
   if (b.action === 'ignore') return 'off';
   if (b.action === 'replace') return '→ ' + keyName(b.keycode);
   if (b.action === 'launch') return appTitle(b.id);
-  if (b.action === 'exec') return 'cmd';
+  if (b.action === 'exec') return commandName(b.command);
   return '';
+}
+// A short, readable name for a command: preset name, the app it launches, or the program it runs.
+function commandName(cmd) {
+  var p = presetFor(cmd); if (p) return p.short || p.title;
+  var m = cmd.match(/applicationManager\/launch[^{]*\{[^}]*"id"\s*:\s*"([^"]+)"/);
+  if (m) return appTitle(m[1]);
+  if (/createToast/.test(cmd)) return 'Message';
+  if (/turnOffScreen/.test(cmd)) return 'Screen off';
+  if (/turnOnScreen/.test(cmd)) return 'Screen on';
+  m = cmd.match(/luna:\/\/[\w.]+\/(?:\w+\/)*(\w+)/);
+  if (m) return m[1];
+  var first = cmd.trim().split(/\s+/)[0].split('/').pop();
+  return first ? first + ' …' : 'Command';
 }
 function presetFor(cmd) { for (var i = 0; i < EXEC_PRESETS.length; i++) if (EXEC_PRESETS[i].command === cmd) return EXEC_PRESETS[i]; return null; }
 function trunc(s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
 function dirty() { return JSON.stringify(sortKeys(S.cfg)) !== JSON.stringify(sortKeys(S.orig)); }
 function sortKeys(o) { var r = {}; Object.keys(o).sort().forEach(function (k) { r[k] = o[k]; }); return r; }
 
+// ---- login: the password comes from the QR code link (#pw=...), is kept on this device and sent with every request
+var AUTH = { pw: '', asked: false };
+(function () {
+  var m = location.hash.match(/[#&]pw=([0-9A-Fa-f]+)/);
+  try {
+    if (m) {
+      AUTH.pw = m[1].toUpperCase(); localStorage.setItem('inputhook-pw', AUTH.pw);
+      if (window.history.replaceState) window.history.replaceState(null, '', location.pathname + location.search);   // keep it out of the address bar
+    } else {
+      AUTH.pw = localStorage.getItem('inputhook-pw') || '';
+    }
+  } catch (e) { if (m) AUTH.pw = m[1].toUpperCase(); }
+})();
+function savePassword(pw) { AUTH.pw = pw; try { localStorage.setItem('inputhook-pw', pw); } catch (e) {} }
+function showLogin(wrong) {
+  if (AUTH.asked) return; AUTH.asked = true;
+  openModal('<h3>Log in to the TV</h3><p class="muted small">' + (wrong ? 'The saved password is not valid any more. ' : '') +
+    'Scan the QR code shown under <b>Phone</b> in the app on the TV, or type the password it shows.</p>' +
+    '<div class="field"><input type="text" id="login-pw" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="Password" style="flex:1;font-family:Consolas,monospace">' +
+    '<button class="primary" id="login-go">Log in</button></div>', function () {
+    function go() { var v = $('login-pw').value.trim().toUpperCase(); if (!v) return; savePassword(v); location.reload(); }
+    $('login-go').onclick = go;
+    $('login-pw').onkeydown = function (e) { if (e.keyCode === 13) go(); };
+  });
+}
 function api(path, opts) {
   opts = opts || {};
-  return fetch(path, { method: opts.method || 'GET', body: opts.body, cache: 'no-store', credentials: 'same-origin' }).then(function (r) {
+  var headers = {};
+  if (AUTH.pw) headers.Authorization = 'Basic ' + btoa('tv:' + AUTH.pw);
+  return fetch(path, { method: opts.method || 'GET', body: opts.body, cache: 'no-store', credentials: 'same-origin', headers: headers }).then(function (r) {
+    if (r.status === 401) { showLogin(!!AUTH.pw); throw new Error('Not logged in'); }
     return r.text().then(function (t) { if (!r.ok) throw new Error(r.status + ' ' + t); return t; });
   });
 }
@@ -242,6 +284,15 @@ function rockPath(x, y, w, h, part) {
   if (part === 'top') return 'M' + l + ',' + bot + ' L' + l + ',' + (top + r) + ' A' + r + ',' + r + ' 0 0 1 ' + rt + ',' + (top + r) + ' L' + rt + ',' + bot + ' Z';
   return 'M' + l + ',' + top + ' L' + rt + ',' + top + ' L' + rt + ',' + (bot - r) + ' A' + r + ',' + r + ' 0 0 1 ' + l + ',' + (bot - r) + ' Z';
 }
+// Width a button's label may use: up to the next button on the same row (its label gets the same), at most 120.
+function labelRoom(l) {
+  var near = 999;
+  LAYOUT.forEach(function (o) {
+    if (o === l || o.shape === 'ring' || Math.abs(o.y - l.y) > 24) return;
+    near = Math.min(near, Math.abs(o.x - l.x));
+  });
+  return Math.max(40, Math.min(120, near - 6, 2 * Math.min(l.x - 30, 270 - l.x)));
+}
 function drawRemote() {
   var svg = $('remote'); svg.innerHTML = '';
   var defs = el('defs', {}, svg);
@@ -259,7 +310,7 @@ function drawRemote() {
     if (l.shape === 'round') {
       face = el('circle', { 'class': 'face', cx: l.x, cy: l.y, r: l.r }, grp);
       ring = el('circle', { 'class': 'ring', cx: l.x, cy: l.y, r: l.r + 3 }, grp);
-      if (l.id !== 'ok' && l.id !== 'voice' && l.id !== 'home') tagY = l.y + l.r + 11;
+      if (l.id !== 'ok') tagY = l.y + l.r + 1;
     } else if (l.shape === 'pill' || l.shape === 'rock') {
       var d = l.shape === 'rock' ? rockPath(l.x, l.y, l.w, l.h, l.part) : null;
       if (d) { face = el('path', { 'class': 'face', d: d }, grp); ring = el('path', { 'class': 'ring', d: d }, grp); }
@@ -267,7 +318,7 @@ function drawRemote() {
         var rr = Math.min(l.h / 2, 12);
         face = el('rect', { 'class': 'face', x: l.x - l.w / 2, y: l.y - l.h / 2, width: l.w, height: l.h, rx: rr }, grp);
         ring = el('rect', { 'class': 'ring', x: l.x - l.w / 2 - 2.5, y: l.y - l.h / 2 - 2.5, width: l.w + 5, height: l.h + 5, rx: rr + 2 }, grp);
-        tagY = l.y + l.h / 2 + 10;
+        tagY = l.y + l.h / 2 + 1;
       }
       if (l.fill) face.setAttribute('style', 'fill:' + l.fill);
       if (l.ink) grp.setAttribute('data-ink', l.ink);
@@ -289,7 +340,11 @@ function drawRemote() {
       if (l.shape === 'ring') txt.setAttribute('font-size', 11);
     }
     if (b && tagY != null) {
-      var tg = el('text', { 'class': 'tag', x: l.x, y: tagY }, grp); tg.textContent = trunc(shortTag(b), 14);
+      var room = labelRoom(l);
+      var label = trunc(shortTag(b), Math.max(5, Math.floor((room - 10) / 5.4)));
+      var tw = label.length * 5.4 + 10;
+      el('rect', { 'class': 'tagbg', x: l.x - tw / 2, y: tagY - 6.5, width: tw, height: 13, rx: 6.5 }, grp);
+      var tg = el('text', { 'class': 'tag', x: l.x, y: tagY + .5 }, grp); tg.textContent = label;
     }
     grp.addEventListener('click', function () { if (!l.locked) select({ layoutId: l.id }); else toast('Power cannot be remapped by Input Hook.'); });
   });
@@ -303,7 +358,10 @@ function flash(code) {
 }
 
 // ---------------------------------------------------------------- panel
-function select(sel) { S.sel = sel; S.learning = null; S.appFilter = ''; renderAll(); }
+function select(sel) {
+  S.sel = sel; S.learning = null; S.appFilter = ''; renderAll();
+  if (sel && window.innerWidth < 900 && $('panel').scrollIntoView) $('panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 function setBind(code, b) {
   if (code == null) return;
   if (!b) delete S.cfg[String(code)]; else S.cfg[String(code)] = b;
@@ -647,7 +705,27 @@ function getAccess() {
   return Promise.all([api('/ip/').catch(function () { return ''; }), api('/password/').catch(function () { return ''; })]).then(function (r) {
     var local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
     var ip = (r[0] || '').trim() || (local ? '' : location.hostname);
-    return { address: ip ? 'http://' + ip + ':1842/' : '', password: (r[1] || '').trim() };
+    return { address: ip ? 'http://' + ip + ':1842/' : '', password: (r[1] || '').trim() || AUTH.pw };
+  });
+}
+// QR code for opening the interface on a phone. The code carries the password in the URL
+// (http://tv:PASSWORD@ip:1842/), so most phone browsers log in without asking.
+function qrImg(text, px) {
+  if (typeof qrcode !== 'function') return '';
+  var q = qrcode(0, 'M'); q.addData(text); q.make();
+  var n = q.getModuleCount(), cell = Math.max(2, Math.floor(px / (n + 8)));
+  return '<img class="qr" alt="QR code" src="' + q.createDataURL(cell, cell * 4) + '">';
+}
+function showPhone() {
+  getAccess().then(function (a) {
+    if (!a.address) { toast('The TV address is not known yet.', 'err'); return; }
+    var withPass = a.password ? a.address + '#pw=' + a.password : a.address;
+    openModal('<h3>Open on your phone</h3>' +
+      '<p class="muted small">Scan with the phone camera, on the same Wi-Fi as the TV.</p>' +
+      '<div class="qr-wrap">' + qrImg(withPass, isTV ? 420 : 300) + '</div>' +
+      '<div class="pc small" style="text-align:center">Address: <b>' + esc(a.address) + '</b><br>User: anything · Password: <b>' + esc(a.password || '(the one you entered)') + '</b></div>' +
+      '<p class="muted small" style="text-align:center">The code logs the phone in by itself, and the phone stays logged in. To log every device out, use Advanced &gt; New password.</p>' +
+      '<div class="row"><button id="qr-close">Close</button></div>', function () { $('qr-close').onclick = closeModal; });
   });
 }
 function pcCard() {
@@ -657,7 +735,9 @@ function pcCard() {
     var where = isTV ? 'on the TV' : local ? 'through an SSH tunnel' : 'from this device';
     $('pc-card').innerHTML = '<h3>Open on another device</h3><div class="small pc">' +
       'Address: <b>' + esc(a.address || 'unknown') + '</b><br>User: anything<br>Password: <b>' + esc(a.password || '(the one you entered)') + '</b></div>' +
-      '<div class="small muted" style="margin-top:.3rem">The password changes when the TV restarts. You are connected ' + where + '.</div>';
+      '<div class="small muted" style="margin-top:.3rem">Scan the QR code to log a phone in. You are connected ' + where + '.</div>' +
+      '<button class="ghost" id="pc-qr" style="margin-top:.6rem">Show QR code for a phone</button>';
+    $('pc-qr').onclick = showPhone;
     if (ADV.tab === 'advanced') renderAdvanced();
   });
 }
@@ -667,6 +747,7 @@ function loadApps() {
       return { id: a.id, title: a.title || a.id, hidden: !!(a.visible === false || (a.class && a.class.hidden) || a.systemApp && a.noWindow) };
     }).sort(function (a, b) { return a.title.localeCompare(b.title); });
     S.appsById = {}; S.apps.forEach(function (a) { S.appsById[a.id] = a; });
+    drawRemote();                       // app names in the button labels
     if (S.sel) renderPanel();
     renderAssignments();
   }).catch(function () {});
@@ -730,6 +811,7 @@ function renderAdvanced() {
   h += '<div class="card"><h3>Maintenance</h3>' +
     '<button class="preset" id="a-reload"><b>Reload from the TV</b><code>Discard local edits and read the TV again</code></button>' +
     '<button class="preset" id="a-forget"><b>Forget learned codes</b><code>Use the built-in key codes for the ' + esc(LAYOUTS[S.meta.model].name) + ' again</code></button>' +
+    '<button class="preset" id="a-newpw"><b>New password</b><code>Logs every other phone and PC out; they scan the new QR code to get back in</code></button>' +
     '<button class="preset" id="a-clear"><b>Reset every button to default</b><code>Clears all assignments here; press Apply to TV to save</code></button>' +
     '<button class="preset danger" id="a-reboot"><b>Restart TV</b><code>Needed after installing or updating Input Hook, or if the hook stops reacting</code></button></div></div>';
   h += '<div class="adv-col wide"><div class="card"><h3>Logs</h3><div class="chips" id="log-targets">';
@@ -761,6 +843,18 @@ function renderAdvanced() {
   $('raw-reset').onclick = function () { $('raw').value = JSON.stringify(sortKeys(S.cfg), null, 2); };
   $('a-reload').onclick = function () { load().then(function () { renderAdvanced(); toast('Reloaded from the TV.'); }); };
   $('a-forget').onclick = function () { S.meta.codes[S.meta.model] = {}; putJSON('/config/studio-layout.json', S.meta); renderAll(); toast('Learned codes cleared.'); };
+  $('a-newpw').onclick = function () {
+    openModal('<h3>Make a new password?</h3><p>Every other phone and PC is logged out until it scans the new QR code.</p><div class="row"><button id="np-no">Cancel</button><button class="primary" id="np-yes">New password</button></div>', function () {
+      $('np-no').onclick = closeModal;
+      $('np-yes').onclick = function () {
+        api('/password/reset', { method: 'POST' }).then(function (pw) {
+          pw = pw.trim(); if (AUTH.pw) savePassword(pw);
+          if (S.status) S.status.password = pw;
+          closeModal(); pcCard(); toast('New password: ' + pw, 'ok');
+        }).catch(function (e) { toast('Could not change it: ' + e.message, 'err'); });
+      };
+    });
+  };
   $('a-clear').onclick = function () { S.cfg = {}; renderAll(); renderAdvanced(); toast('All buttons set to default here. Press Apply to TV to save.'); };
   $('a-reboot').onclick = function () {
     openModal('<h3>Restart the TV?</h3><p>The TV reboots now. Unsaved changes here are lost.</p><div class="row"><button id="r-no">Cancel</button><button class="primary" id="r-yes">Restart</button></div>', function () {
@@ -794,6 +888,7 @@ $('btn-apply').onclick = apply;
 $('btn-revert').onclick = function () { S.cfg = clone(S.orig); renderAll(); toast('Changes discarded.'); };
 $('btn-more').onclick = moreMenu;
 $('btn-model').onclick = pickModel;
+$('btn-phone').onclick = showPhone;
 $('modal').onclick = function (e) { if (e.target === $('modal')) closeModal(); };
 window.addEventListener('beforeunload', function (e) { if (dirty()) { e.preventDefault(); e.returnValue = ''; } });
 

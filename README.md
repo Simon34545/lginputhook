@@ -14,6 +14,8 @@ The interface shows a picture of your Magic Remote (pick the model under the pic
 
 If a button on the picture has the wrong ID (remotes differ by region), select it, press **Learn code** and press the real button. Buttons that are not on the picture can be edited by ID from **More > Edit a key by its code**. **More > History** restores the configuration from before any Apply.
 
+To use it on a phone, press **Phone** and scan the QR code: the link carries the password (after `#`, so it never reaches the server), the page logs in by itself and the phone stays logged in. The page works on phone screens. On other devices the interface asks for the password itself (no browser popup); the password stays the same across restarts and **Advanced > New password** logs every other device out.
+
 The **Advanced** tab shows the service status, the hook and ezinject logs for each hooked process, the raw `keybinds.json` (edit, import, download), a table of known key IDs, and a restart button.
 
 The configuration lives in `/home/root/.config/lginputhook/keybinds.json`; keys are button IDs:
