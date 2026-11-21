@@ -640,13 +640,25 @@ function checkHook() {
     else setStatus('warn', 'Hook loaded, waiting for config');
   }).catch(function (e) { setStatus('err', 'TV not reachable: ' + e.message); });
 }
+// Address and password for opening the interface on another device.
+// 1.5.2+ reports both in /status.json; older services only give the password to localhost.
+function getAccess() {
+  if (S.status && S.status.address) return Promise.resolve({ address: S.status.address, password: S.status.password || '' });
+  return Promise.all([api('/ip/').catch(function () { return ''; }), api('/password/').catch(function () { return ''; })]).then(function (r) {
+    var local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    var ip = (r[0] || '').trim() || (local ? '' : location.hostname);
+    return { address: ip ? 'http://' + ip + ':1842/' : '', password: (r[1] || '').trim() };
+  });
+}
 function pcCard() {
-  var c = $('pc-card');
-  var local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
-  if (!local) { c.innerHTML = '<h3>Connected</h3><div class="small muted">Editing the TV at <b class="pc">' + esc(location.host) + '</b>.</div>'; return; }
-  Promise.all([api('/ip/').catch(function () { return ''; }), api('/password/').catch(function () { return ''; })]).then(function (r) {
-    if (!isTV) { c.innerHTML = '<h3>Connected</h3><div class="small muted">Through a local tunnel to the TV' + (r[0] ? ' (' + esc(r[0]) + ')' : '') + '.</div>'; return; }
-    c.innerHTML = '<h3>Edit from your PC</h3><div class="small pc">Open <b>http://' + esc(r[0]) + ':1842</b><br>User: anything · Password: <b>' + esc(r[1]) + '</b></div><div class="small muted" style="margin-top:.3rem">The password changes when the TV restarts.</div>';
+  return getAccess().then(function (a) {
+    S.access = a;
+    var local = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    var where = isTV ? 'on the TV' : local ? 'through an SSH tunnel' : 'from this device';
+    $('pc-card').innerHTML = '<h3>Open on another device</h3><div class="small pc">' +
+      'Address: <b>' + esc(a.address || 'unknown') + '</b><br>User: anything<br>Password: <b>' + esc(a.password || '(the one you entered)') + '</b></div>' +
+      '<div class="small muted" style="margin-top:.3rem">The password changes when the TV restarts. You are connected ' + where + '.</div>';
+    if (ADV.tab === 'advanced') renderAdvanced();
   });
 }
 function loadApps() {
@@ -703,7 +715,12 @@ function renderAdvanced() {
     h += statusRow('Service runs as root', st.root, st.root ? 'yes' : 'no: open the app once from the TV');
     h += statusRow('Hook injected', st.injected, st.injected ? (st.targets || []).join(', ') || 'yes' : 'no: restart the TV');
     h += statusRow('Starts with the TV', st.autostart, st.autostart ? 'yes' : 'no');
-  } else {
+  }
+  if (S.access) {
+    h += statusRow('Address', null, S.access.address || 'unknown');
+    h += statusRow('User / password', null, 'anything / ' + (S.access.password || '(the one you entered)'));
+  }
+  if (!st) {
     h += '<p class="muted small">This Input Hook version does not report its status (needs 1.5.2 or newer).</p>';
   }
   h += '</div>';
@@ -781,8 +798,8 @@ $('modal').onclick = function (e) { if (e.target === $('modal')) closeModal(); }
 window.addEventListener('beforeunload', function (e) { if (dirty()) { e.preventDefault(); e.returnValue = ''; } });
 
 load().then(function () {
-  loadStatus().then(function () { if (S.sel) renderPanel(); });
-  checkHook(); pcCard(); pollLogs();
+  loadStatus().then(function () { if (S.sel) renderPanel(); pcCard(); });
+  checkHook(); pollLogs();
   setInterval(pollLogs, 700); setInterval(checkHook, 15000);
   var first = document.querySelector('.rk[tabindex="0"]'); if (first && isTV) first.focus();
 });

@@ -214,6 +214,9 @@ var server = http.createServer(function (req, res) {
 		} else if (path == '/status.json') {
 			var status = getStatus();
 			status.targets = targets.map(function (t) { return t[1]; });
+			// Shown in the interface so other devices can be connected; this endpoint itself requires the password.
+			status.address = 'http://' + getLocalIP() + ':1842/';
+			status.password = password;
 			var data = JSON.stringify(status);
 			respond(res, 200, {'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data)}, data);
 		} else if (path.substring(0, 4) == '/ip/') {
